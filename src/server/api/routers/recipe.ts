@@ -7,6 +7,10 @@ import {
 } from "~/server/api/trpc";
 import openAi from "~/lib/open-ai";
 
+function removeNewlines(str: string) {
+  return str.replace(/\n\n?/g, "");
+}
+
 export const recipeRouter = createTRPCRouter({
   generateIngredientsRecipe: publicProcedure
     .input(
@@ -20,48 +24,52 @@ export const recipeRouter = createTRPCRouter({
       //get ingredients
       const ingredients = input.ingredients.join(", ");
       //make api call to openai for generating a meal based on the ingredients including step by step guide
-      /* const response = await openAi.createChatCompletion({
+      const response = await openAi.createChatCompletion({
         model: "gpt-3.5-turbo",
         messages: [
           {
             role: "user",
-            content: `generate me a recipe from these ingredients: "noodles, eggs, chicken, pepper" please include a title,  ingredients list, description, prep, cook,  total time, Number of instruction steps, step by step instruction each step begins with Step number`,
+            content:
+              "generate me a recipe from these ingredients: noodles, eggs, chicken, pepper please include a title, ingredients list, description, prep, cook, total time, number of instruction steps, step by step instruction each step begins with Step number",
           },
         ],
-        temperature: 6,
+        temperature: 0.2,
         max_tokens: 3799,
       });
-      console.log(response.data.choices[0]?.message); */
-      //format meal including steps, prep-time, cook-time, total-time, title, description
-      const response =
-        "Title: Lentil and Chicken Spinach Salad with Tomato Dressing Description: This lentil and chicken spinach salad is packed with protein, fiber, and nutrients. The tomato dressing adds a refreshing touch to the dish. Prep Time: 20 minutes Cook Time: 15 minutes Total Time: 25 minutes Ingredients: 1 cup of cooked lentils 1 cup of cooked chicken breast, sliced 2 cups of fresh spinach leaves 1 cup of cherry tomatoes, halved For the tomato dressing: 1 large tomato, chopped 2 tablespoons of olive oil 1 tablespoon of balsamic vinegar Salt and pepper to taste Instructions: Step 1: Rinse the cooked lentils with cold water and drain them. Set aside. Step 2: In a small bowl, mix together the olive oil, balsamic vinegar, chopped tomato, salt, and pepper. Set aside. Step 3: In a large bowl, add the fresh spinach leaves, sliced chicken breast, and cherry tomatoes. Number of instruction steps: 3.";
 
-      const title = response.split("Title:")[1].split("Description:")[0];
+      //format meal including steps, prep-time, cook-time, total-time, title, description
+
+      const title = response.data.choices[0]?.message.content
+        .split("Title:")[1]
+        .split("Description:")[0];
       console.log(title);
-      const description = response
+      const description = response.data.choices[0]?.message.content
         .split("Description:")[1]
         .split("Prep Time")[0];
       console.log(description);
-      const prepTime = response
+      const prepTime = response.data.choices[0]?.message.content
         .split("Prep Time:")[1]
         .split("Cook Time:")[0]
         .trim();
       console.log("Prep Time: ", prepTime);
 
-      const cookTime = response
+      const cookTime = response.data.choices[0]?.message.content
         .split("Cook Time:")[1]
         .split("Total Time:")[0]
         .trim();
       console.log("Cook Time: ", cookTime);
-      const totalTime = response
+      const totalTime = response.data.choices[0]?.message.content
         .split("Total Time:")[1]
         .split("Ingredients:")[0]
         .trim();
       console.log("Total Time: ", totalTime);
       const stepsCounter = parseInt(
-        response.split("Number of instruction steps:")[1].split(".")[0].trim()
+        response.data.choices[0]?.message.content
+          .split("Number of instruction steps:")[1]
+          .split(".")[0]
+          .trim()
       );
-      const steps = response
+      const steps = response.data.choices[0]?.message.content
         .split("Instructions:")[1]
         .split("Number of instruction steps:")[0]
         .trim();
@@ -77,19 +85,19 @@ export const recipeRouter = createTRPCRouter({
       console.log(stepsList);
 
       //generate image for recipe image
-      const recipeImage = await openAi.createImage({
+      /*const recipeImage = await openAi.createImage({
         prompt: title,
         n: 1,
         size: "512×512",
       });
       const recipeImageUrl = recipeImage.data.data[0].url;
-      console.log(recipeImageUrl);
+      console.log(recipeImageUrl); */
       //generate images for each step
       /* const stepsImages = generateStepImages */
       //upload images to a hosting provider
       //add recipe to user and db including the steps
       return {
-        ingredients: "Meal generated",
+        ingredients: "Generated meal",
       };
     }),
 });
