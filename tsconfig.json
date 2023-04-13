@@ -18,7 +18,9 @@
     "noUncheckedIndexedAccess": true,
     "baseUrl": ".",
     "paths": {
-      "~/*": ["./src/*"]
+      "~/*": ["./src/*"],
+      "~/forms/*": ["./src/components/forms/*"],
+      "~/lib/*": ["./src/lib/*"]
     }
   },
   "include": [
